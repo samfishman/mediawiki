@@ -32,11 +32,16 @@ func (t *Test) TearDown() {
 	t.ts.Close()
 }
 
+func makeClient(wikiURL string) (*MWApi, error) {
+	httpClient := http.DefaultClient
+	return NewAPI(wikiURL, "TESTING", httpClient)
+}
+
 func BuildUp(response string, t *testing.T) *Test {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, response)
 	}))
-	client, err := New(ts.URL, "TESTING")
+	client, err := makeClient(ts.URL)
 	if err != nil {
 		t.Fatalf("Error in BuildUp: %s", err)
 	}
@@ -73,7 +78,7 @@ func TestLogin(t *testing.T) {
 		}
 	}))
 	defer ts.Close()
-	client, err := New(ts.URL, "TESTING")
+	client, err := makeClient(ts.URL)
 	if err != nil {
 		t.Fatalf("Error creating client: %s", err.Error())
 	}
@@ -101,7 +106,7 @@ func TestLoginFailedSecondary(t *testing.T) {
 		}
 	}))
 	defer ts.Close()
-	client, err := New(ts.URL, "TESTING")
+	client, err := makeClient(ts.URL)
 	if err != nil {
 		t.Fatalf("Error creating client: %s", err)
 	}
@@ -154,7 +159,7 @@ func TestPostForm(t *testing.T) {
 		}
 	}))
 	defer ts.Close()
-	client, err := New(ts.URL, "TESTING")
+	client, err := makeClient(ts.URL)
 	if err != nil {
 		t.Fatalf("Error creating client: %s", err.Error())
 	}
@@ -185,7 +190,7 @@ func TestAPI(t *testing.T) {
 		}
 	}))
 	defer ts.Close()
-	client, err := New(ts.URL, "TESTING")
+	client, err := makeClient(ts.URL)
 	if err != nil {
 		t.Fatalf("Error creating client: %s", err.Error())
 	}
@@ -227,7 +232,7 @@ func TestDownload(t *testing.T) {
 		}
 	}))
 	defer ts.Close()
-	client, err := New(ts.URL, "TESTING")
+	client, err := makeClient(ts.URL)
 	if err != nil {
 		t.Fatalf("Error creating client: %s", err.Error())
 	}
@@ -258,7 +263,7 @@ func TestDownloadNoFiles(t *testing.T) {
 		}
 	}))
 	defer ts.Close()
-	client, err := New(ts.URL, "TESTING")
+	client, err := makeClient(ts.URL)
 	if err != nil {
 		t.Fatalf("Error creating client: %s", err)
 	}
@@ -310,7 +315,7 @@ func TestUpload(t *testing.T) {
 		fmt.Fprintln(w, `{"upload":{"result":"Success"}}`)
 	}))
 	defer ts.Close()
-	client, err := New(ts.URL, "TESTING")
+	client, err := makeClient(ts.URL)
 	if err != nil {
 		t.Fatalf("Error creating client: %s", err.Error())
 	}
@@ -388,7 +393,7 @@ func TestBasicAuth(t *testing.T) {
 		}
 	}))
 	defer ts.Close()
-	client, err := New(ts.URL, "TESTING")
+	client, err := makeClient(ts.URL)
 	if err != nil {
 		t.Fatalf("Error creating client: %s", err.Error())
 	}

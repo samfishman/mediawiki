@@ -1,4 +1,4 @@
-// Copyright 2013 James McGuire
+// Copyright 2013 James McGuire, Sam Fishman
 // This code is covered under the MIT License
 // Please refer to the LICENSE file in the root of this
 // repository for any information.
@@ -138,7 +138,7 @@ func checkError(response []byte) error {
 	}
 }
 
-// New generates a new mediawiki API (MWApi) struct.
+// New generates a new mediawiki API (MWApi) struct with default transport
 //
 // Example: mwapi.New("http://en.wikipedia.org/w/api.php", "My Mediawiki Bot")
 // Returns errors if the URL is invalid
@@ -148,12 +148,20 @@ func New(wikiURL, userAgent string) (*MWApi, error) {
 		return nil, err
 	}
 
-	client := http.Client{
+	client := &http.Client{
 		Transport:     nil,
 		CheckRedirect: nil,
 		Jar:           cookiejar,
 	}
 
+	return NewAPI(wikiURL, userAgent, client)
+}
+
+// NewAPI generates a new mediawiki API (MWApi) struct.
+//
+// Example: mwapi.New("http://en.wikipedia.org/w/api.php", "My Mediawiki Bot", http.DefaultClient)
+// Returns errors if the URL is invalid
+func NewAPI(wikiURL, userAgent string, client *http.Client) (*MWApi, error) {
 	clientURL, err := url.Parse(wikiURL)
 	if err != nil {
 		return nil, err
@@ -161,7 +169,7 @@ func New(wikiURL, userAgent string) (*MWApi, error) {
 
 	return &MWApi{
 		url:       clientURL,
-		client:    &client,
+		client:    client,
 		format:    "json",
 		userAgent: "go-mediawiki https://github.com/sadbox/go-mediawiki " + userAgent,
 	}, nil
@@ -476,6 +484,7 @@ func (m *MWApi) Read(pageName string) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
+	response.GenPageList()
 	return &response, nil
 }
 
